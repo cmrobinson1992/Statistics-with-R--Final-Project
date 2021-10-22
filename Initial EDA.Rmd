@@ -1,0 +1,348 @@
+---
+    title: "Peer Assessment I"
+output:
+    html_document: 
+    pandoc_args: [
+        "--number-sections",
+    ]
+---
+    
+    
+    First, let us load the data and necessary packages:
+    
+    ```{r load, message = FALSE}
+load("ames_train.Rdata")
+library(MASS)
+library(dplyr)
+library(ggplot2)
+library(devtools)
+library(dplyr)
+library(statsr)
+memory.limit(size = 40000)
+```
+
+#
+Make a labeled histogram (with 30 bins) of the ages of the houses in the data set, and describe the distribution.
+
+
+```{r Q1}
+ames_train %>%
+    mutate(House.Age = 2021-Year.Built) %>%
+    ggplot(aes(x=House.Age)) + 
+    geom_histogram(color = 'orange', fill = 'blue', bins = 30) + 
+    ggtitle('Number of Houses by Age') + 
+    labs(x = 'Age of House', y = 'Count') +
+    theme(plot.title = element_text(hjust = 0.5))
+```
+* * *
+    
+    From the histogram above, you can see that the age of the houses in the `ames_train` data set is right-skewed. The majority of the ages fall between 0 and 75 years old, and the frequency decreases significantly past 75 years old.  Overall, the range of ages fall between around 10 years and around 135 years.  The greatest frequency of age in the data set is around 15 years old (or houses built around 2006).
+
+* * *
+    #
+    The mantra in real estate is "Location, Location, Location!" Make a graphical display that relates a home price to its neighborhood in Ames, Iowa. Which summary statistics are most appropriate to use for determining the most expensive, least expensive, and most heterogeneous (having the most variation in housing price) neighborhoods? Report which neighborhoods these are based on the summary statistics of your choice. Report the value of your chosen summary statistics for these neighborhoods.
+
+
+```{r Q2}
+ames_train_summary <- ames_train %>%
+    group_by(Neighborhood) %>%
+    summarise(Count = n(), sum_price = sum(price), avg_price = mean(price), med_price = median(price), min_price = min(price),
+              max_price = max(price), q1_price = quantile(price, 0.25), q3_price = quantile(price, 0.75), 
+              IQR_price = q3_price - q1_price, Range_price = max_price-min_price)
+
+ames_train_summary
+
+ames_train %>%
+    ggplot(aes(x=Neighborhood, y = price)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45))
+
+
+library(ggmap)
+register_google(key = 'AIzaSyDEhGTvFCq3NcLjNXkrd67zNjzpa9sE4Do', write = TRUE)
+ames <- get_map('ames', zoom = 13)
+AmesMap <- ggmap(ames, extent = 'device', legend = 'topleft')
+
+
+Somerst <- data.frame(lat = 42.052650, lon = -93.644843)
+BrkSide <- data.frame(lat = 42.02881903912064, lon = -93.63049188234545)
+ClearCr <- data.frame(lat = 42.03657397888249, lon = -93.64887304418023)
+CollgCr <- data.frame(lat = 42.025494912034155, lon = -93.63771636423816)
+Crawfor <- data.frame(lat = 42.028224218062654, lon = -93.60710771543098)
+Edwards <- data.frame(lat = 42.015565977136575, lon = -93.68587339952029)
+Gilbert <- data.frame(lat = 42.1068163474924, lon = -93.64922121258348)
+Greens <- data.frame(lat = 42.04331212046676, lon = -93.64913757887277)
+GrnHill <- data.frame(lat = 42.002033485388246, lon = -93.64488427869496)
+IDOTRR <- data.frame(lat = 42.022501275424275, lon = -93.62203456681684)
+Blueste <- data.frame(lat = 42.00953717163152, lon = -93.64666903101156)
+Blmngtn <- data.frame(lat = 42.05661593716759, lon = -93.63520641999354)
+BrDale <- data.frame(lat = 42.05884455916529, lon = -93.63684168659509)
+Landmrk <- data.frame(lat = 42.03024936721511, lon = -93.62022469009929)
+MeadowV <- data.frame(lat = 41.99257995048931, lon = -93.60273053285842)
+NAmes <- data.frame(lat = 42.045740696132356, lon = -93.62058491915803)
+NoRidge <- data.frame(lat = 42.05369544009003, lon = -93.64859112044729)
+NPkVill <- data.frame(lat = 42.04924453477436, lon = -93.62364254176953)
+NridgHt <- data.frame(lat = 42.0602670643559, lon = -93.64938546931343)
+NWAmes <- data.frame(lat = 42.05241416223634, lon = -93.63024432475562)
+OldTown <- data.frame(lat = 42.029540103263216, lon = -93.61408260795548)
+SWISU <- data.frame(lat = 42.022754190113034, lon = -93.64994877394756)
+Sawyer <- data.frame(lat = 42.03223653964385, lon = 93.67666644205046)
+SawyerW <- data.frame(lat = 42.03362757149064, lon = -93.681495277844183)
+StoneBr <- data.frame(lat = 42.059842280171544, lon =  -93.6376421021748)
+Timber <- data.frame(lat = 42.01824464087094, lon = -93.62028083863699)
+Veenker <- data.frame(lat = 42.04176633660527, lon = -93.64888559375515)
+Mitchel <- data.frame(lat = 41.991536429285624, lon = -93.60096746931343)
+
+Locations <- data.frame(Neighborhood = c('Blmngtn', 'Somerst', 'BrkSide', 'ClearCr', 'CollgCr', 'Crawfor', 'Edwards', 'Gilbert', 'Greens', 'GrnHill', 'IDOTRR', 'Blueste', 'BrDale', 'Landmrk', 'MeadowV', 'NAmes', 'NoRidge', 'NPkVill', 'NridgHt', 'NWAmes', 'OldTown', 'SWISU', 'Sawyer', 'SawyerW', 'StoneBr', 'Timber', 'Veenker', 'Mitchel'), lat = c(Blmngtn$lat, Somerst$lat, BrkSide$lat, ClearCr$lat, CollgCr$lat, Crawfor$lat, Edwards$lat, Gilbert$lat, Greens$lat, GrnHill$lat, IDOTRR$lat, Blueste$lat, BrDale$lat, Landmrk$lat, MeadowV$lat, NAmes$lat, NoRidge$lat, NPkVill$lat, NridgHt$lat, NWAmes$lat, OldTown$lat, SWISU$lat, Sawyer$lat, SawyerW$lat, StoneBr$lat, Timber$lat, Veenker$lat, Mitchel$lat),  lon = c(Blmngtn$lon, Somerst$lon, BrkSide$lon, ClearCr$lon, CollgCr$lon, Crawfor$lon, Edwards$lon, Gilbert$lon, Greens$lon, GrnHill$lon, IDOTRR$lon, Blueste$lon, BrDale$lon, Landmrk$lon, MeadowV$lon, NAmes$lon, NoRidge$lon, NPkVill$lon, NridgHt$lon, NWAmes$lon, OldTown$lon, SWISU$lon, Sawyer$lon, SawyerW$lon, StoneBr$lon, Timber$lon, Veenker$lon, Mitchel$lon))
+
+ames_train_summary <- ames_train_summary %>%
+    left_join(Locations, by = c('Neighborhood' = 'Neighborhood'))
+
+AmesMap + geom_point(aes(x=lon, y=lat, colour = avg_price, size = avg_price, stroke = 7), data = ames_train_summary) + scale_colour_gradient(low = 'yellow', high = 'red') + ggtitle("Average House Price by Neighborhood") + theme(plot.title = element_text(hjust = 0.5)) + ggrepel::geom_label_repel(data = ames_train_summary, mapping = aes(x=lon, y = lat, label = Neighborhood))
+AmesMap + geom_point(aes(x=lon, y=lat, colour = sum_price, size = sum_price, stroke = 7), data = ames_train_summary) + scale_colour_gradient(low = 'yellow', high = 'red') + ggtitle("Total House Price by Neighborhood") + theme(plot.title = element_text(hjust = 0.5)) + ggrepel::geom_label_repel(data = ames_train_summary, mapping = aes(x=lon, y = lat, label = Neighborhood))
+AmesMap + geom_point(aes(x=lon, y=lat, colour = IQR_price, size = IQR_price, stroke = 7), data = ames_train_summary) + scale_colour_gradient(low = 'yellow', high = 'red') + ggtitle("IQR of House Price by Neighborhood") + theme(plot.title = element_text(hjust = 0.5)) + ggrepel::geom_label_repel(data = ames_train_summary, mapping = aes(x=lon, y = lat, label = Neighborhood))
+AmesMap + geom_point(aes(x=lon, y=lat, colour = Range_price, size = Range_price, stroke = 7), data = ames_train_summary) + scale_colour_gradient(low = 'yellow', high = 'red') + ggtitle("Range of House Price by Neighborhood") + theme(plot.title = element_text(hjust = 0.5)) + ggrepel::geom_label_repel(data = ames_train_summary, mapping = aes(x=lon, y = lat, label = Neighborhood))
+```
+* * *
+    
+    As you can see from the boxplots and visual maps above, the NridgHt and StoneBr neighborhoods have the highest center and highest max values for house prices.  Additionally, the BrDale, Blueste, MeadowV, Greens, and NPkVill have consistently low prices, having low centers and low IQR and Ranges.  From the maps, you can see that the Northwest and Southeast corners of Ames have the highest average prices, but they also have the largest ranges.  As you move closer into the center of the city, the average prices decrease. From the boxplots, you can see that the majority of the neighborhoods are *not* normally distributed by price, so I think the median price is the best representative of the true center.  
+
+To be more specific, the NridgHt and StoneBr neighborhoods have an average price of $333,646.74 and $339,316.05 respectively, and a max price of $615,000.00 and $591,587.00 respectively.
+
+Further, the BrDale, Blueste, MeadowV, Greens and NPKVill neighborhoods have an IQR of $16,725, $10,250, $20,150, $16,438 and $13,025 and a range of $42,500, $20,500, $56,500, $59,000 and $26,900 respectively.
+* * *
+    
+    # 
+    
+    Which variable has the largest number of missing values? Explain why it makes sense that there are so many missing values for this variable.
+
+```{r Q3}
+ames_train %>%
+    summarise_all(funs(sum(is.na(.)))) %>%
+    select_if(~sum(.) != 0) %>%
+    sort(c(1:25), decreasing = TRUE)
+```
+* * *
+    
+    The `Pool.QC` variable has the most NA values (997), which makes sense because the value is NA if the house has no pool.  Since NA for the variable simply indicates that the house has no pool, it makes sense that the majority of houses do not have a pool.
+
+* * *
+    
+    #
+    
+    We want to predict the natural log of the home prices. Candidate explanatory variables are lot size in square feet (Lot.Area), slope of property (Land.Slope), original construction date (Year.Built), remodel date (Year.Remod.Add), and the number of bedrooms above grade (Bedroom.AbvGr). Pick a model selection or model averaging method covered in the Specialization, and describe how this method works. Then, use this method to find the best multiple regression model for predicting the natural log of the home prices.
+
+
+```{r Q4}
+ames_train <- ames_train %>%
+    mutate(logprice = log(price))
+
+ames_train_logprice <- ames_train %>%
+    select(-c(PID, price))
+
+# m_ames_train_full <- lm(logprice ~ ., data = ames_train_logprice)
+
+#NOTE: The above linear model errors because it detects a variable that is a factor with less than 2 levels. The below code debugs the issue to identify the variable causing the error.  After debugging, that variable should be dropped from the model
+
+which(sapply(ames_train_logprice, function(x) length(unique(x)) < 2))
+
+# Here, we see that `Utilities` is the variable causing the issue.  To verify:
+
+summary(ames_train_logprice$Utilities)
+
+# We can see that all 1000 of the rows in the ames_train_logprice dataframe have the same value for `Utilities`, so we will drop the variable from our model
+
+ames_train_logprice <- ames_train_logprice %>%
+    select(-Utilities)
+
+# m_ames_train_full <- lm(logprice ~ ., data = ames_train_logprice)
+
+# Now, we are still getting the error, so I will replace NAs in columns with a lot of NA values with 'None', remove all NA rows, and try again.
+
+ames_train_logprice <- ames_train_logprice %>%
+    mutate(Pool.QC = ifelse(is.na(Pool.QC), 'None', Pool.QC), Misc.Feature = ifelse(is.na(Misc.Feature), 'None', Misc.Feature), Alley = ifelse(is.na(Alley), 'None', Alley), Fence = ifelse(is.na(Fence), 'None', Fence), Fireplace.Qu = ifelse(is.na(Fireplace.Qu), 'None', Fireplace.Qu), logarea= log(area))
+
+ames_train_logprice_nona <- na.omit(ames_train_logprice[c(1:80)])
+
+m_ames_train_full <- lm(logprice ~ ., data = ames_train_logprice_nona)
+
+BIC(m_ames_train_full)
+
+# The BIC for the full model is 3.937438, so any model that excludes variables will have to have a BIC lower than that.
+
+n <- ncol(ames_train_logprice_nona[, -79])
+#BIC Model
+score_step <- stepAIC(m_ames_train_full, k = log(n), trace = FALSE)
+
+score_step
+```
+
+* * *
+    
+    Using the backwards elimination method to find the model that minimizes BIC, the following variables are included in the model: `MS.Zoning`, `Lot.Shape`, `Neighborhood`, `Condition.1`, `Condition.2`, `Bldg.Type`, `Overall.Qual`,
+`Overall.Cond`, `Year.Built`, `Year.Remod.Add`, `Exterior.2nd`, `Exter.Cond`, `Bsmt.Qual`, `BsmtFin.SF.1`, `Central.Air`, `X1st.Flr.SF`, `X2nd.Flr.SF`, `Bsmt.Full.Bath`, `Kitchen.AbvGr`, `Garage.Cars`, `Garage.Qual`, `Garage.Cond`, `Enclosed.Porch`, `Screen.Porch`, `logarea`, and `Sale.Condition`.  Backwards elimination model selection first considers the model that includes all possible explanatory variables in the data set and provides the BIC of that model.  Then, the method will eliminate one variable at a time until the BIC is minimized.  Therefore, the final model will include explanatory variables so that no additional variable in the data set will improve the model.
+
+Now, we will evaluate the model averaging approach. The bayesian model averaging approach accounts for the inherant uncertainty in individual models (i.e. the MLR outlined above) by taking a weighted average of model specific quantities.  
+
+* * *
+    
+    ```{r}
+ames_train_abbr_logprice <- ames_train_logprice %>%
+    dplyr::select(logprice, MS.Zoning, Lot.Shape, Neighborhood, Condition.1, Condition.2, Bldg.Type, Overall.Qual, Overall.Cond, Year.Built, Year.Remod.Add, Exterior.2nd, Exter.Cond, Bsmt.Qual, BsmtFin.SF.1, Central.Air, X1st.Flr.SF, X2nd.Flr.SF, Bsmt.Full.Bath, Kitchen.AbvGr, Garage.Cars, Garage.Qual, Garage.Cond, Enclosed.Porch, Screen.Porch, Sale.Condition, logarea)
+
+library(BAS)
+bma_ames_train <- bas.lm(logprice ~ ., data = na.omit(ames_train_abbr_logprice), prior = 'BIC', modelprior = uniform())
+bma_ames_train
+bma_summary <- summary(bma_ames_train)
+image(bma_ames_train, rotate = FALSE)
+
+m_ames_train_abbr <- lm(logprice ~ ., data = ames_train_abbr_logprice)
+
+#R^2 for BMA
+mean(bma_ames_train$R2)
+
+```
+
+* * *
+    First, evaluating the MLR model that minimizes BIC vs the BMA model using R^2, the former has an R^2 of 0.9333 and an Adjusted R^2 of 0.9256, and the latter has an R^2 of and an Adjusted R^2 of 0.9075427 on average. In evaluating residuals, the charts below show that the residuals for both models are randomly distributed around 0 and both look very similar.  
+
+* * *
+    *Linearity and Constant Variance* 
+    ```{r}
+m_ames_train_abbr_aug <- broom::augment(m_ames_train_abbr)
+
+m_ames_train_abbr_aug %>%
+    ggplot(aes(x=.fitted, y=.resid)) +
+    geom_point(alpha = 0.6) +
+    geom_hline(yintercept = 0, linetype = 'dashed') +
+    labs(x= "Fitted Values", y= "Residuals")
+
+plot(bma_ames_train)
+
+```
+*Normality:* Check normality of the distribution of residuals for the MLR model
+```{r}
+m_ames_train_abbr_aug %>%
+    ggplot(aes(x=.resid)) +
+    geom_histogram(binwidth = 0.25) +
+    xlab('Residuals')
+```
+
+***
+    
+    Overall, it doesn't appear there is a significant difference between the MLR model and the BMA model.  Therefore, for efficiency, I will choose to utilize the MLR model (`m_ames_train_abbr`).
+
+***
+#
+
+Which home has the largest squared residual in the previous analysis (Question 4)? Looking at all the variables in the data set, can you explain why this home stands out from the rest (what factors contribute to the high squared residual and why are those factors relevant)?
+
+
+```{r Q5}
+ames_train_residuals <- na.omit(ames_train_abbr_logprice) %>%
+  mutate(residuals = m_ames_train_abbr$residuals, prediction = m_ames_train_abbr$fitted.values, sqresidual = residuals^2) %>%
+  filter(sqresidual == max(sqresidual)) %>%
+  select(logprice, residuals, prediction, sqresidual)
+
+ames_train_maxresid <- ames_train %>%
+  filter(logprice == ames_train_residuals$logprice)
+```
+
+* * *
+
+The house that has the largest squared residual is PID 902207130, whose area is 832 sqft and lot size is 9656 sqft.  The relevant data point has the lowest value for `logprice` and, consequently, is the furthest value from the center of `logprice`.  Because the point is an outlier regarding `logprice`, it makes sense that it would vary the most from the predicted value.
+
+
+* * *
+
+#
+
+Use the same model selection method you chose in Question 4 to again find the best multiple regression model to predict the natural log of home prices, but this time **replacing Lot.Area with log(Lot.Area)**. Do you arrive at a model including the same set of predictors?
+
+
+```{r Q6}
+ames_train <- ames_train %>%
+  mutate(loglot = log(Lot.Area))
+
+ames_train_loglotandprice <- ames_train %>%
+  select(-c(PID, Utilities, price, Lot.Area)) %>%
+  mutate(Pool.QC = ifelse(is.na(Pool.QC), 'None', Pool.QC), Misc.Feature = ifelse(is.na(Misc.Feature), 'None', Misc.Feature), Alley = ifelse(is.na(Alley), 'None', Alley), Fence = ifelse(is.na(Fence), 'None', Fence), Fireplace.Qu = ifelse(is.na(Fireplace.Qu), 'None', Fireplace.Qu), logarea= log(area))
+
+ames_train_loglotandprice_nona <- na.omit(ames_train_loglotandprice[c(1:80)])
+  
+m_ames_train_loglot<- lm(logprice ~ ., data = ames_train_loglotandprice_nona)
+
+BIC(m_ames_train_loglot)
+
+# The BIC for the full model is 3.937438, so any model that excludes variables will have to have a BIC lower than that.
+
+n <- ncol(ames_train_loglotandprice_nona[, -79])
+#BIC Model
+score_step_loglot <- stepAIC(m_ames_train_loglot, k = log(n), trace = FALSE)
+
+score_step_loglot
+```
+
+* * *
+
+After replacing Lot.Area with log(Lot.Area), the model that minimizes BIC does not include the same set of predictors as before.  Interestingly, the new model also does not include the log(Lot.Area) variable we added to the dataset.  The relevant predictors that are included in this revised model are: `MS.Zoning`, `Lot.Shape`, `Neighborhood`, `Condition.1`, `Condition.2`, `Bldg.Type`, `Overall.Qual`, `Overall.Cond`, `Year.Built`, `Year.Remod.Add`, `Exterior.2nd`, `Exter.Cond`, `Bsmt.Qual`, `BsmtFin.SF.1`, `Central.Air`, `X1st.Flr.SF`, `X2nd.Flr.SF`, `Bsmt.Full.Bath`, `Kitchen.AbvGr`, `Garage.Cars`, `Garage.Qual`, `Garage.Cond`, `Enclosed.Porch`, `Screen.Porch`, `Sale.Condition`, and `logarea`.
+
+* * *
+
+#
+
+Do you think it is better to log transform Lot.Area, in terms of assumptions for linear regression? Make graphs of the predicted values of log home price versus the true values of log home price for the regression models selected for Lot.Area and log(Lot.Area). Referencing these two plots, provide a written support that includes a quantitative justification for your answer in the first part of question 7.
+
+```{r Q7}
+# First, we will illustrate the linearity of Lot.Area, evaluating a scatter plot of the residuals, a histogram showing the distribution of the residuals, and a QQ-Plot of the residuals to again evaluate normality
+lm_lotarea <- lm(logprice ~ Lot.Area, data = ames_train)
+g_lotarea_scatter <- lm_lotarea %>%
+  ggplot(aes(x=.fitted, y=.resid)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(yintercept = 0, linetype = 'dashed') +
+  labs(x= "Fitted Values", y= "Residuals") + 
+  ggtitle("Scatter Plot of Residuals for Lot.Area")
+g_lotarea_histogram <- lm_lotarea %>%
+  ggplot(aes(x=.resid)) + 
+  geom_histogram()+
+  xlab("Residuals") +
+  ggtitle("Distribution of Residuals for Lot.Area")
+g_lotarea_qqplot <- lm_lotarea %>%
+  ggplot(aes(sample = .resid)) +
+  geom_qq_line() + 
+  geom_qq()
+g_lotarea_scatter
+g_lotarea_histogram
+g_lotarea_qqplot
+
+# Now, we will repeat the process, but to evaluate the linearity of log(Lot.Area)
+lm_loglotarea <- lm(logprice ~ loglot, data = ames_train)
+g_loglotarea_scatter <- lm_loglotarea %>%
+  ggplot(aes(x=.fitted, y=.resid)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(yintercept = 0, linetype = 'dashed') +
+  labs(x= "Fitted Values", y= "Residuals") + 
+  ggtitle("Scatter Plot of Residuals for log(Lot.Area)")
+g_loglotarea_histogram <- lm_loglotarea %>%
+  ggplot(aes(x=.resid)) + 
+  geom_histogram()+
+  xlab("Residuals") +
+  ggtitle("Distribution of Residuals for log(Lot.Area)")
+g_loglotarea_qqplot <- lm_loglotarea %>%
+  ggplot(aes(sample = .resid)) +
+  geom_qq_line() + 
+  geom_qq()
+g_loglotarea_scatter
+g_loglotarea_histogram
+g_loglotarea_qqplot
+```
+
+* * *
+
+After comparing the linearity of `Lot.Area` and log(`Lot.Area`), it is apparent that it is much better to replace `Lot.Area` with the log transformed `Lot.Area` in our MLR model.  The scatter plot for the residuals of `Lot.Area` are very concentrated around a fitted value of 12, with a couple of notable outliers between 13.5 and 14.5.  However, the scatter plot for the residuals of log(`Lot.Area`) is much more evenly scattered around 0, and it does not have the significant outliers shown in the scatter plot for `Lot.Area`.  
+
+Regarding the distribution of residuals, the distribution for `Lot.Area` is skewed left with a notable outlier around -3.  Disregarding the outlier, the distribution is still slightly skewed left.  After log transforming the aforementioned variable, the residual plot looks very similar.  The outlier around -3 still exists, and the distribution is still skewed-left.
+
+Finally, when evaluating the normality of the residuals using a QQ-plot, you can see that the residual values for log(`Lot.Area`) are closer to the line for values greater than 0; however, for negative residuals, the values are about the same distance from the line as with `Lot.Area`.  Therefore, we can say that the distribution for log(`Lot.Area`) is slightly more normal than `Lot.Area`, though not significantly.
+
+
+* * *
+###
